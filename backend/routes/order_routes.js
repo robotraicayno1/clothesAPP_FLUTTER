@@ -211,4 +211,27 @@ orderRouter.put('/:id/status', auth, async (req, res) => {
     }
 });
 
+// Update Payment Proof
+orderRouter.put('/:id/payment-proof', auth, async (req, res) => {
+    try {
+        const { paymentProof } = req.body;
+        let order = await Order.findById(req.params.id);
+
+        if (!order) {
+            return res.status(404).json({ msg: "Order not found" });
+        }
+
+        if (order.userId.toString() !== req.user) {
+            return res.status(403).json({ msg: "Not authorized" });
+        }
+
+        order.paymentProof = paymentProof;
+        await order.save();
+
+        res.json(order);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 module.exports = orderRouter;

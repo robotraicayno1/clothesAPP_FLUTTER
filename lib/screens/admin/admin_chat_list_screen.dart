@@ -1,6 +1,7 @@
 import 'package:clothesapp/screens/admin/admin_chat_detail_screen.dart';
 import 'package:clothesapp/services/chat_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 class AdminChatListScreen extends StatefulWidget {
@@ -15,12 +16,6 @@ class _AdminChatListScreenState extends State<AdminChatListScreen> {
   final ChatService _chatService = ChatService();
   List<Map<String, dynamic>> _conversations = [];
   bool _isLoading = true;
-
-  // Theme Colors
-  final Color _kPrimaryColor = const Color(0xFFD4AF37); // Gold
-  final Color _kBackgroundColor = const Color(0xFF050505); // Deep Black
-  final Color _kSurfaceColor = const Color(0xFF1A1A1A); // Dark Grey
-  final Color _kSubTextColor = Colors.white54;
 
   @override
   void initState() {
@@ -41,114 +36,143 @@ class _AdminChatListScreenState extends State<AdminChatListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: _kBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
-          "Hội Thoại Khách Hàng",
-          style: TextStyle(color: _kPrimaryColor, fontWeight: FontWeight.bold),
+          "Tin Nhắn Khách Hàng",
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: _kSurfaceColor,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: _kPrimaryColor),
+        iconTheme: theme.iconTheme,
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: _kPrimaryColor))
-          : _conversations.isEmpty
           ? Center(
-              child: Text(
-                "Chưa có hội thoại nào",
-                style: TextStyle(color: _kSubTextColor),
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
               ),
             )
-          : RefreshIndicator(
-              color: _kPrimaryColor,
-              backgroundColor: _kSurfaceColor,
-              onRefresh: () async => _fetchConversations(),
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                itemCount: _conversations.length,
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  color: Colors.white10,
-                  indent: 70, // Align with text start
-                ),
-                itemBuilder: (context, index) {
-                  final conv = _conversations[index];
-                  final lastTime = DateTime.fromMillisecondsSinceEpoch(
+          : _conversations.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 64,
+                    color: Colors.white24,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Chưa có tin nhắn nào",
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                ],
+              ),
+            )
+          : ListView.separated(
+              padding: EdgeInsets.all(16),
+              itemCount: _conversations.length,
+              separatorBuilder: (_, __) => SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final conv = _conversations[index];
+                DateTime? lastTime;
+                if (conv['lastTime'] is int) {
+                  lastTime = DateTime.fromMillisecondsSinceEpoch(
                     conv['lastTime'],
                   );
-                  final timeStr = DateFormat('HH:mm dd/MM').format(lastTime);
+                } else if (conv['lastTime'] is String) {
+                  lastTime = DateTime.tryParse(conv['lastTime']);
+                }
 
-                  return ListTile(
-                    tileColor: Colors.transparent,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    leading: Container(
+                final timeStr = lastTime != null
+                    ? DateFormat('HH:mm dd/MM').format(lastTime.toLocal())
+                    : "";
+
+                return Container(
                       decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _kPrimaryColor, width: 1.5),
+                        color: theme.cardColor,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.05),
+                        ),
                       ),
-                      child: CircleAvatar(
-                        radius: 25,
-                        backgroundColor: _kSurfaceColor,
-                        child: Text(
-                          (conv['name'] ?? 'U')[0].toUpperCase(),
-                          style: TextStyle(
+                      child: ListTile(
+                        contentPadding: EdgeInsets.all(12),
+                        leading: CircleAvatar(
+                          radius: 28,
+                          backgroundColor: theme.colorScheme.primary
+                              .withOpacity(0.2),
+                          child: Text(
+                            (conv['name']?.toString() ?? 'U')[0].toUpperCase(),
+                            style: TextStyle(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 20,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          conv['name']?.toString() ?? 'Unknown',
+                          style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
-                            color: _kPrimaryColor,
-                            fontSize: 18,
+                            color: Colors.white,
                           ),
                         ),
-                      ),
-                    ),
-                    title: Text(
-                      conv['name'] ?? 'Unknown User',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        conv['lastMessage'] ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(color: _kSubTextColor),
-                      ),
-                    ),
-                    trailing: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          timeStr,
-                          style: TextStyle(fontSize: 12, color: _kSubTextColor),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (conv['lastMessage'] != null) ...[
+                              SizedBox(height: 4),
+                              Text(
+                                conv['lastMessage']?.toString() ?? '',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            ],
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        // Optional: Unread badge if valid
-                        // Icon(Icons.arrow_forward_ios, size: 12, color: _kPrimaryColor),
-                      ],
-                    ),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => AdminChatDetailScreen(
-                            token: widget.token,
-                            userId: conv['userId'],
-                            userName: conv['name'],
-                          ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              timeStr,
+                              style: TextStyle(
+                                color: Colors.white38,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Icon(
+                              Icons.chevron_right,
+                              color: Colors.white24,
+                              size: 20,
+                            ),
+                          ],
                         ),
-                      ).then((_) => _fetchConversations());
-                    },
-                  );
-                },
-              ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AdminChatDetailScreen(
+                                token: widget.token,
+                                userId: conv['userId']?.toString() ?? '',
+                                userName: conv['name']?.toString() ?? 'Unknown',
+                              ),
+                            ),
+                          ).then((_) => _fetchConversations());
+                        },
+                      ),
+                    )
+                    .animate()
+                    .fadeIn(delay: (50 * index).ms)
+                    .slideX(begin: -0.1, end: 0);
+              },
             ),
     );
   }

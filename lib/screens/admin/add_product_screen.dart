@@ -155,70 +155,101 @@ class _AddProductScreenState extends State<AddProductScreen> {
     int stock = 0;
     double pPrice = 0;
     double sPrice = 0;
+    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text("Thêm Biến Thể"),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(labelText: "Màu sắc (vd: Đỏ)"),
-                onChanged: (v) => color = v,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setStateDialog) {
+          return AlertDialog(
+            backgroundColor: Theme.of(context).cardColor,
+            title: Text(
+              "Thêm Biến Thể",
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            content: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: "Màu sắc (vd: Đỏ)",
+                      ),
+                      onChanged: (v) => color = v,
+                      validator: (value) => value == null || value.isEmpty
+                          ? "Vui lòng nhập màu"
+                          : null,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: size,
+                      dropdownColor: Theme.of(context).cardColor,
+                      items: availableSizes
+                          .map(
+                            (s) => DropdownMenuItem(value: s, child: Text(s)),
+                          )
+                          .toList(),
+                      onChanged: (v) => setStateDialog(() => size = v!),
+                      decoration: const InputDecoration(labelText: "Size"),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: "Số lượng tồn kho",
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => stock = int.tryParse(v) ?? 0,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: "Giá nhập (VNĐ)",
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => pPrice = double.tryParse(v) ?? 0,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: "Giá bán (VNĐ)",
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => sPrice = double.tryParse(v) ?? 0,
+                    ),
+                  ],
+                ),
               ),
-              DropdownButtonFormField<String>(
-                value: size,
-                items: availableSizes
-                    .map((s) => DropdownMenuItem(value: s, child: Text(s)))
-                    .toList(),
-                onChanged: (v) => size = v!,
-                decoration: InputDecoration(labelText: "Size"),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Hủy"),
               ),
-              TextField(
-                decoration: InputDecoration(labelText: "Số lượng tồn kho"),
-                keyboardType: TextInputType.number,
-                onChanged: (v) => stock = int.tryParse(v) ?? 0,
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: "Giá nhập (VNĐ)"),
-                keyboardType: TextInputType.number,
-                onChanged: (v) => pPrice = double.tryParse(v) ?? 0,
-              ),
-              TextField(
-                decoration: InputDecoration(labelText: "Giá bán (VNĐ)"),
-                keyboardType: TextInputType.number,
-                onChanged: (v) => sPrice = double.tryParse(v) ?? 0,
+              ElevatedButton(
+                onPressed: () {
+                  if (formKey.currentState!.validate()) {
+                    // Update the main widget state
+                    this.setState(() {
+                      variants.add(
+                        ProductVariant(
+                          color: color,
+                          size: size,
+                          stock: stock,
+                          purchasePrice: pPrice,
+                          sellingPrice: sPrice,
+                        ),
+                      );
+                    });
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text("Thêm"),
               ),
             ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text("Hủy"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (color.isNotEmpty) {
-                setState(() {
-                  variants.add(
-                    ProductVariant(
-                      color: color,
-                      size: size,
-                      stock: stock,
-                      purchasePrice: pPrice,
-                      sellingPrice: sPrice,
-                    ),
-                  );
-                });
-                Navigator.pop(context);
-              }
-            },
-            child: Text("Thêm"),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -230,7 +261,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         title: Text(widget.product == null ? "Thêm Sản Phẩm" : "Sửa Sản Phẩm"),
         elevation: 0,
         backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        foregroundColor: const Color.fromARGB(255, 255, 255, 255),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(20),

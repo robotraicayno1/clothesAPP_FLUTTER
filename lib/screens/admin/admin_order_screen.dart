@@ -1,5 +1,8 @@
+import 'package:clothesapp/models/order.dart';
 import 'package:clothesapp/services/order_service.dart';
+import 'package:clothesapp/services/auth_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 
 class AdminOrderScreen extends StatefulWidget {
@@ -50,21 +53,42 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
 
   void _showTrackingDialog(String orderId) {
     final TextEditingController trackingController = TextEditingController();
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Nhập mã vận đơn"),
+        backgroundColor: theme.cardColor,
+        title: Text(
+          "Nhập mã vận đơn",
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: theme.colorScheme.primary,
+          ),
+        ),
         content: TextField(
           controller: trackingController,
-          decoration: const InputDecoration(
+          style: TextStyle(color: Colors.white),
+          decoration: InputDecoration(
             hintText: "VD: VN123456789",
             labelText: "Mã vận đơn (Tracking ID)",
+            labelStyle: TextStyle(color: Colors.white70),
+            hintStyle: TextStyle(color: Colors.white30),
+            filled: true,
+            fillColor: Colors.black12,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.white10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: theme.colorScheme.primary),
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Hủy"),
+            child: Text("Hủy", style: TextStyle(color: Colors.white60)),
           ),
           ElevatedButton(
             onPressed: () {
@@ -74,7 +98,11 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
                 _updateStatus(orderId, 2, trackingNumber: tid);
               }
             },
-            child: const Text("Xác nhận & Giao hàng"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: theme.colorScheme.onPrimary,
+            ),
+            child: Text("Xác nhận & Giao hàng"),
           ),
         ],
       ),
@@ -83,31 +111,46 @@ class _AdminOrderScreenState extends State<AdminOrderScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Quản Lý Đơn Hàng',
-          style: TextStyle(color: Colors.black),
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: theme.iconTheme,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: theme.colorScheme.primary,
+              ),
+            )
           : _orders.isEmpty
-          ? const Center(child: Text("Chưa có đơn hàng nào"))
+          ? Center(
+              child: Text(
+                "Chưa có đơn hàng nào",
+                style: TextStyle(color: Colors.white54),
+              ),
+            )
           : ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: _orders.length,
               itemBuilder: (context, index) {
                 final order = _orders[index];
                 return OrderCard(
-                  order: order,
-                  onStatusUpdate: _updateStatus,
-                  onShip: _showTrackingDialog,
-                );
+                      order: order,
+                      onStatusUpdate: _updateStatus,
+                      onShip: _showTrackingDialog,
+                    )
+                    .animate()
+                    .fadeIn(delay: (50 * index).ms)
+                    .slideY(begin: 0.1, end: 0);
               },
             ),
     );
@@ -128,6 +171,7 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final currencyFormat = NumberFormat.currency(locale: 'vi_VN', symbol: '₫');
     final date = DateTime.fromMillisecondsSinceEpoch(order.orderedAt);
     final dateString = DateFormat('dd/MM/yyyy HH:mm').format(date);
@@ -135,13 +179,19 @@ class OrderCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 0,
-      color: Colors.white,
+      elevation: 4,
+      color: theme.cardColor,
+      shadowColor: Colors.black54,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          gradient: LinearGradient(
+            colors: [theme.cardColor, theme.cardColor.withOpacity(0.8)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,27 +204,31 @@ class OrderCard extends StatelessWidget {
                   children: [
                     Text(
                       "Đơn: #${order.id.substring(order.id.length - 8)}",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       dateString,
-                      style: TextStyle(color: Colors.grey[500], fontSize: 12),
+                      style: TextStyle(color: Colors.white54, fontSize: 12),
                     ),
                   ],
                 ),
                 _buildStatusChip(order.status),
               ],
             ),
-            const Divider(height: 32),
+            const Divider(height: 32, color: Colors.white12),
             Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: Colors.indigo[50],
-                  child: const Icon(Icons.person_outline, color: Colors.indigo),
+                  backgroundColor: theme.colorScheme.secondary.withOpacity(0.2),
+                  child: Icon(
+                    Icons.person_outline,
+                    color: theme.colorScheme.secondary,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -183,11 +237,14 @@ class OrderCard extends StatelessWidget {
                     children: [
                       Text(
                         order.userName,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                       Text(
                         order.userEmail,
-                        style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                        style: TextStyle(color: Colors.white54, fontSize: 13),
                       ),
                     ],
                   ),
@@ -201,7 +258,7 @@ class OrderCard extends StatelessWidget {
                 letterSpacing: 1.2,
                 fontSize: 10,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: Colors.white38,
               ),
             ),
             const SizedBox(height: 8),
@@ -218,40 +275,80 @@ class OrderCard extends StatelessWidget {
                   children: [
                     Text(
                       "${product.name} x $quantity",
-                      style: const TextStyle(fontSize: 14),
+                      style: const TextStyle(fontSize: 14, color: Colors.white),
                     ),
                   ],
                 ),
               );
             }),
-            const Divider(height: 32),
+            const Divider(height: 32, color: Colors.white12),
             if (order.trackingNumber.isNotEmpty) ...[
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.indigo[50],
+                  color: Colors.indigo.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.indigo.withOpacity(0.3)),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.local_shipping_outlined,
-                      color: Colors.indigo,
+                      color: Colors.indigoAccent,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Text(
                       "Mã vận đơn: ",
                       style: TextStyle(
-                        color: Colors.indigo[900],
+                        color: Colors.indigoAccent,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
                       order.trackingNumber,
-                      style: TextStyle(color: Colors.indigo[900]),
+                      style: TextStyle(color: Colors.indigoAccent),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (order.paymentProof.isNotEmpty) ...[
+              GestureDetector(
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      child: Image.network(
+                        order.paymentProof.startsWith('http')
+                            ? order.paymentProof
+                            : "${AuthService.baseUrl.replaceAll('/api', '')}/${order.paymentProof.replaceAll('//uploads', '/uploads')}",
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.image, color: Colors.green, size: 20),
+                      const SizedBox(width: 8),
+                      const Text(
+                        "Đã gửi ảnh thanh toán (Nhấn để xem)",
+                        style: TextStyle(
+                          color: Colors.green,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -261,10 +358,10 @@ class OrderCard extends StatelessWidget {
               children: [
                 Text(
                   currencyFormat.format(order.totalPrice),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 20,
-                    color: Colors.red,
+                    color: theme.colorScheme.primary,
                   ),
                 ),
                 _buildActionButton(order.status),
@@ -290,7 +387,7 @@ class OrderCard extends StatelessWidget {
         break;
       case 2:
         text = "Đang giao";
-        color = Colors.indigo;
+        color = Colors.indigoAccent;
         break;
       case 3:
         text = "Hoàn thành";
@@ -307,8 +404,9 @@ class OrderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
         text,
@@ -326,21 +424,29 @@ class OrderCard extends StatelessWidget {
       return ElevatedButton(
         onPressed: () => onShip(order.id),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0F172A),
+          backgroundColor: Color(0xFFD4AF37),
+          foregroundColor: Colors.black,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          elevation: 4,
+          shadowColor: Color(0xFFD4AF37).withOpacity(0.5),
         ),
-        child: const Text("Duyệt & Giao hàng"),
+        child: const Text(
+          "Duyệt & Giao hàng",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       );
     }
     if (status == 2) {
       return OutlinedButton(
         onPressed: null,
         style: OutlinedButton.styleFrom(
+          side: BorderSide(color: Colors.white24),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          foregroundColor: Colors.white54,
         ),
         child: const Text("Đang vận chuyển"),
       );

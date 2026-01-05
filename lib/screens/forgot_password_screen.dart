@@ -52,52 +52,141 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Quên mật khẩu",
-          style: TextStyle(color: Colors.black),
-        ),
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.black),
+        iconTheme: theme.iconTheme,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              "Nhập email của bạn để nhận mã khôi phục mật khẩu.",
-              style: GoogleFonts.outfit(fontSize: 16, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(
-                labelText: "Email",
-                hintText: "example@email.com",
-                prefixIcon: Icon(Icons.email_outlined),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          // Background Gradient
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    theme.scaffoldBackgroundColor,
+                    Colors.black,
+                    theme.primaryColor.withOpacity(0.2),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 32),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-                    onPressed: _sendResetToken,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F172A),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+          ),
+
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 40),
+                  Icon(
+                    Icons.lock_reset,
+                    size: 80,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    "Quên mật khẩu?",
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "Đừng lo lắng! Hãy nhập email của bạn để chúng tôi gửi mã khôi phục.",
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: Colors.white70,
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+
+                  // Email Input
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: theme.textTheme.bodyLarge,
+                      decoration: InputDecoration(
+                        labelText: "Email",
+                        hintText: "example@email.com",
+                        prefixIcon: Icon(
+                          Icons.email_outlined,
+                          color: theme.iconTheme.color,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        labelStyle: TextStyle(color: Colors.white60),
+                        hintStyle: TextStyle(color: Colors.white38),
                       ),
                     ),
-                    child: const Text("Gửi mã xác nhận"),
                   ),
-          ],
-        ),
+
+                  const SizedBox(height: 32),
+
+                  // Submit Button
+                  SizedBox(
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _sendResetToken,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        foregroundColor: theme.colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        elevation: 5,
+                        shadowColor: theme.colorScheme.primary.withOpacity(0.4),
+                      ),
+                      child: _isLoading
+                          ? SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: theme.colorScheme.onPrimary,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              "GỬI MÃ XÁC NHẬN",
+                              style: GoogleFonts.outfit(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

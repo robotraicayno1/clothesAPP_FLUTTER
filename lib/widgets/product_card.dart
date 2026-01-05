@@ -1,6 +1,7 @@
 import 'package:clothesapp/models/product.dart';
 import 'package:clothesapp/screens/product_detail_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -8,38 +9,49 @@ class ProductCard extends StatelessWidget {
   final String token;
   final Map<String, dynamic> user;
 
+  final VoidCallback? onReturn;
+
   const ProductCard({
     super.key,
     required this.product,
     this.width,
     required this.token,
     required this.user,
+    this.onReturn,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
+      onTap: () async {
+        await Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) =>
                 ProductDetailScreen(product: product, token: token, user: user),
           ),
         );
+        if (onReturn != null) {
+          onReturn!();
+        }
       },
       child: Container(
         width: width,
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
+          color: theme.cardTheme.color,
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.05),
+            width: 1,
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,7 +60,7 @@ class ProductCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(24),
+                    top: Radius.circular(20),
                   ),
                   child: Image.network(
                     product.fullImageUrl,
@@ -57,8 +69,13 @@ class ProductCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
                       height: 180,
-                      color: Colors.grey[100],
-                      child: const Icon(Icons.broken_image, color: Colors.grey),
+                      color: theme.colorScheme.surface,
+                      child: Icon(
+                        Icons.broken_image,
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.5,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -72,20 +89,32 @@ class ProductCard extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF59E0B),
+                        color: theme.colorScheme.primary, // Gold
                         borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
-                      child: const Row(
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.star, color: Colors.white, size: 12),
-                          SizedBox(width: 4),
+                          Icon(
+                            Icons.star_rounded,
+                            color: theme.colorScheme.onPrimary,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
                           Text(
-                            'Bán Chạy',
-                            style: TextStyle(
-                              color: Colors.white,
+                            'BÁN CHẠY',
+                            style: GoogleFonts.outfit(
+                              color: theme.colorScheme.onPrimary,
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
                             ),
                           ),
                         ],
@@ -101,45 +130,46 @@ class ProductCard extends StatelessWidget {
                 children: [
                   Text(
                     _getCategoryName(product.category).toUpperCase(),
-                    style: TextStyle(
+                    style: GoogleFonts.outfit(
                       letterSpacing: 1.2,
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
-                      color: Colors.indigo[400],
+                      color: theme.colorScheme.secondary, // Grey
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
                     product.name,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Color(0xFF0F172A),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      height: 1.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         product.priceRange,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF0F172A),
-                          fontSize: 10,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary, // Gold
+                          fontSize: 14,
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.black,
-                          borderRadius: BorderRadius.circular(10),
+                          color: theme.colorScheme.primary,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.add,
-                          color: Colors.white,
+                          color: theme.colorScheme.onPrimary,
                           size: 16,
                         ),
                       ),

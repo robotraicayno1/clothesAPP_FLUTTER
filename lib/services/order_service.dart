@@ -1,97 +1,7 @@
 import 'dart:convert';
 import 'package:clothesapp/core/constants/api_constants.dart';
 import 'package:http/http.dart' as http;
-import 'package:clothesapp/models/product.dart';
-
-class Order {
-  final String id;
-  final List<Product> products;
-  final List<int> quantities;
-  final List<String> selectedColors;
-  final List<String> selectedSizes;
-  final String address;
-  final String userId;
-  final String userName;
-  final String userEmail;
-  final int orderedAt;
-  final int status;
-  final double totalPrice;
-  final double shippingFee;
-  final String appTransId;
-  final String trackingNumber;
-
-  Order({
-    required this.id,
-    required this.products,
-    required this.quantities,
-    required this.selectedColors,
-    required this.selectedSizes,
-    required this.address,
-    required this.userId,
-    required this.userName,
-    required this.userEmail,
-    required this.orderedAt,
-    required this.status,
-    required this.totalPrice,
-    required this.shippingFee,
-    required this.appTransId,
-    required this.trackingNumber,
-  });
-
-  factory Order.fromJson(Map<String, dynamic> json) {
-    try {
-      List<Product> products = [];
-      List<int> quantities = [];
-      List<String> selectedColors = [];
-      List<String> selectedSizes = [];
-
-      if (json['products'] != null) {
-        for (var item in json['products']) {
-          if (item['product'] != null) {
-            products.add(Product.fromJson(item['product']));
-            quantities.add(item['quantity'] ?? 1);
-            selectedColors.add(item['selectedColor'] ?? '');
-            selectedSizes.add(item['selectedSize'] ?? '');
-          }
-        }
-      }
-
-      int parseTime(dynamic value) {
-        if (value is int) return value;
-        if (value is String) {
-          final dt = DateTime.tryParse(value);
-          return dt?.millisecondsSinceEpoch ?? 0;
-        }
-        return 0;
-      }
-
-      return Order(
-        id: json['_id'] ?? '',
-        products: products,
-        quantities: quantities,
-        selectedColors: selectedColors,
-        selectedSizes: selectedSizes,
-        address: json['address'] ?? '',
-        userId: json['userId'] is Map
-            ? (json['userId']['_id'] ?? '')
-            : (json['userId'] ?? ''),
-        userName: json['userId'] is Map
-            ? (json['userId']['name'] ?? 'Guest')
-            : 'Guest',
-        userEmail: json['userId'] is Map ? (json['userId']['email'] ?? '') : '',
-        orderedAt: parseTime(json['createdAt']),
-        status: json['status'] ?? 0,
-        totalPrice: (json['totalPrice'] ?? 0).toDouble(),
-        shippingFee: (json['shippingFee'] ?? 0).toDouble(),
-        appTransId: json['appTransId'] ?? '',
-        trackingNumber: json['trackingNumber'] ?? '',
-      );
-    } catch (e) {
-      // print('Error parsing Order: $e');
-      rethrow;
-    }
-  }
-}
+import 'package:clothesapp/models/order.dart';
 
 class OrderService {
   final String baseUrl = ApiConstants.ordersSubRoute;
@@ -194,5 +104,27 @@ class OrderService {
 
   Future<Map<String, dynamic>> cancelOrder(String id, String token) async {
     return await updateOrderStatus(id, 4, token);
+  }
+
+  Future<bool> uploadPaymentProof(
+    String orderId,
+    String imageUrl,
+    String token,
+  ) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/$orderId/payment-proof'),
+        headers: {'Content-Type': 'application/json', 'x-auth-token': token},
+        body: jsonEncode({'paymentProof': imageUrl}),
+      );
+      if (response.statusCode == 200) {
+        return true;
+      }
+      throw Exception(
+        "Update Failed: ${response.statusCode} | ${response.body}",
+      );
+    } catch (e) {
+      throw Exception("Service Error: $e");
+    }
   }
 }

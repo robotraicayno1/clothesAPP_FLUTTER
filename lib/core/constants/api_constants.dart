@@ -1,7 +1,10 @@
 class ApiConstants {
   // Current Laptop IP on Wi-Fi: 192.168.2.23
   // Change this to your current IP if you move to a new network
-  static const String ipAddress = '192.168.2.23';
+  // Current Laptop IP on Wi-Fi: 192.168.2.23
+  // Change this to your current IP if you move to a new network
+  // static const String ipAddress = '192.168.2.23';
+  static const String ipAddress = '192.168.2.23'; // Android Emulator Localhost
   static const String baseUrl = 'http://$ipAddress:3000/api';
 
   // Sub-routes

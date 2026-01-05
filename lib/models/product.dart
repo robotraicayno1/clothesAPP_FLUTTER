@@ -92,9 +92,27 @@ class Product {
   }
 
   String get fullImageUrl {
-    if (imageUrl.startsWith('http')) return imageUrl;
     String serverBase = AuthService.baseUrl.replaceAll('/api', '');
-    return "$serverBase/$imageUrl".replaceAll('//uploads', '/uploads');
+    String path = imageUrl;
+
+    // If it's a full URL from our server (contains /uploads), strip the domain to make it relative
+    if (path.contains('/uploads')) {
+      final index = path.indexOf('/uploads');
+      if (index != -1) {
+        path = path.substring(index);
+      }
+    }
+
+    // If it's an external URL (e.g. Unsplash), return as is
+    if (path.startsWith('http') && !path.contains('/uploads')) {
+      return path;
+    }
+
+    // Clean up path
+    if (!path.startsWith('/')) path = '/$path';
+    path = path.replaceAll(r'\', '/').replaceAll('//uploads', '/uploads');
+
+    return "$serverBase$path";
   }
 
   String get priceRange {

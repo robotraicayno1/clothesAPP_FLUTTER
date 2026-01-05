@@ -7,7 +7,7 @@ import 'package:clothesapp/widgets/add_review_dialog.dart';
 import 'package:clothesapp/widgets/review_card.dart';
 import 'package:clothesapp/widgets/product_card.dart';
 import 'package:flutter/material.dart';
-
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -52,11 +52,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     _loadRecommendations();
   }
 
-  void _checkIsFavorite() {
-    final favorites = widget.user['favorites'] as List?;
-    if (favorites != null) {
+  void _checkIsFavorite() async {
+    // 1. Initial check with passed data
+    _processFavorites(widget.user['favorites']);
+
+    // 2. Fetch fresh data from server to be sure
+    final freshProfile = await _userService.getProfile(widget.token);
+    if (freshProfile != null && mounted) {
+      _processFavorites(freshProfile['favorites']);
+    }
+  }
+
+  void _processFavorites(dynamic favorites) {
+    if (favorites is List) {
+      bool found = false;
+      for (var item in favorites) {
+        if (item is String && item == widget.product.id) {
+          found = true;
+          break;
+        }
+        if (item is Map && item['_id'] == widget.product.id) {
+          found = true;
+          break;
+        }
+      }
       setState(() {
-        isFavorite = favorites.contains(widget.product.id);
+        isFavorite = found;
       });
     }
   }
@@ -130,6 +151,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
         title: const Text('Xác nhận xóa'),
         content: const Text('Bạn có chắc muốn xóa đánh giá này?'),
         actions: [
@@ -229,7 +251,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 450,
+            expandedHeight: 500,
             pinned: true,
             backgroundColor: theme.scaffoldBackgroundColor,
             elevation: 0,
@@ -241,18 +263,19 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   fit: BoxFit.cover,
                   errorBuilder: (_, __, ___) => Container(
                     color: Colors.grey[900],
-                    child: const Icon(
+                    child: Icon(
                       Icons.broken_image,
                       size: 100,
-                      color: Colors.white54,
+                      color: Colors.white.withOpacity(0.1),
                     ),
                   ),
                 ),
               ),
+              collapseMode: CollapseMode.parallax,
             ),
             leading: IconButton(
               icon: CircleAvatar(
-                backgroundColor: Colors.black.withValues(alpha: 0.5),
+                backgroundColor: Colors.black.withOpacity(0.4),
                 child: const Icon(
                   Icons.arrow_back_ios_new,
                   color: Colors.white,
@@ -264,7 +287,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             actions: [
               IconButton(
                 icon: CircleAvatar(
-                  backgroundColor: Colors.black.withValues(alpha: 0.5),
+                  backgroundColor: Colors.black.withOpacity(0.4),
                   child: Icon(
                     isFavorite ? Icons.favorite : Icons.favorite_border,
                     color: isFavorite ? const Color(0xFFEF4444) : Colors.white,
@@ -284,10 +307,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   children: [
                     Text(
                       _currentProduct.category.toUpperCase(),
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        letterSpacing: 1.5,
+                      style: GoogleFonts.outfit(
+                        letterSpacing: 2,
                         color: theme.colorScheme.primary, // Gold
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -295,39 +319,45 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       _currentProduct.name,
                       style: theme.textTheme.displayLarge?.copyWith(
                         fontSize: 28,
+                        height: 1.2,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 16),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Text(
                       _getSelectedVariantPrice() ?? _currentProduct.priceRange,
                       style: theme.textTheme.headlineMedium?.copyWith(
                         color: theme.colorScheme.primary,
                         fontWeight: FontWeight.w800,
+                        fontSize: 26,
                       ),
                     ),
                     const Spacer(),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
+                        horizontal: 12,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: theme.dividerColor),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.05),
+                        ),
                       ),
                       child: Row(
                         children: [
                           const Icon(
-                            Icons.star,
+                            Icons.star_rounded,
                             color: Color(0xFFF59E0B),
-                            size: 18,
+                            size: 20,
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Text(
                             _currentProduct.averageRating > 0
                                 ? _currentProduct.averageRating.toStringAsFixed(
@@ -339,8 +369,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                             ),
                           ),
                           Text(
-                            " (${_currentProduct.reviewCount})",
-                            style: theme.textTheme.bodySmall,
+                            " (${_currentProduct.reviewCount} đánh giá)",
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color
+                                  ?.withOpacity(0.6),
+                            ),
                           ),
                         ],
                       ),
@@ -348,7 +381,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ],
                 ),
                 const SizedBox(height: 32),
-                Text("Mô tả", style: theme.textTheme.headlineSmall),
+                Text(
+                  "Mô tả",
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Text(
                   _currentProduct.description.isEmpty
@@ -356,21 +394,26 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       : _currentProduct.description,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     height: 1.6,
-                    color: Colors.white70,
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.8),
+                    fontSize: 15,
                   ),
                 ),
                 const SizedBox(height: 32),
+                Divider(color: Colors.white.withOpacity(0.05)),
+                const SizedBox(height: 24),
                 ...(_renderColorSection(theme)),
                 ...(_renderSizeSection(theme)),
                 const SizedBox(height: 48),
                 _buildRecommendationsSection(theme),
-                const Divider(height: 64),
+                const Divider(height: 64, color: Colors.white24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       'Đánh giá khách hàng',
-                      style: theme.textTheme.headlineSmall,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     _isLoadingReviews
                         ? const SizedBox.shrink()
@@ -383,7 +426,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               style: TextStyle(
                                 color: _hasReviewed()
                                     ? Colors.grey
-                                    : theme.colorScheme.secondary,
+                                    : theme.colorScheme.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -427,6 +470,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       const SizedBox(height: 12),
       Wrap(
         spacing: 12,
+        runSpacing: 12,
         children: availableColors
             .map(
               (color) =>
@@ -463,6 +507,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       const SizedBox(height: 12),
       Wrap(
         spacing: 12,
+        runSpacing: 12,
         children: availableSizes
             .map(
               (size) => _buildChoiceChip(size, selectedSize == size, theme, (
@@ -491,7 +536,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Widget _buildSectionTitle(String title, ThemeData theme) {
     return Text(
       title,
-      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      style: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.bold,
+        color: theme.textTheme.bodyMedium?.color?.withOpacity(0.9),
+      ),
     );
   }
 
@@ -501,7 +549,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     ThemeData theme,
     Function(bool) onSelected,
   ) {
-    return FilterChip(
+    return ChoiceChip(
       label: Text(label),
       selected: isSelected,
       onSelected: onSelected,
@@ -512,14 +560,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         color: isSelected
             ? theme.colorScheme.onPrimary
             : theme.textTheme.bodyMedium?.color,
-        fontWeight: FontWeight.w600,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
       ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isSelected ? Colors.transparent : theme.dividerColor,
+          color: isSelected
+              ? Colors.transparent
+              : Colors.white.withOpacity(0.1),
         ),
       ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     );
   }
 
@@ -530,7 +581,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text("Sản phẩm tương tự", style: theme.textTheme.headlineSmall),
+        Text(
+          "Sản phẩm tương tự",
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 16),
         _isLoadingRecommendations
             ? const Center(child: CircularProgressIndicator())
@@ -587,10 +643,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
-        border: Border(top: BorderSide(color: theme.dividerColor)),
+        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.05))),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black.withOpacity(0.5),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -599,22 +655,23 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
               color: theme.cardColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: theme.dividerColor),
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
             ),
             child: Row(
               children: [
                 IconButton(
                   icon: Icon(
-                    Icons.remove,
+                    Icons.remove_rounded,
                     size: 20,
                     color: theme.iconTheme.color,
                   ),
                   onPressed: () =>
                       quantity > 1 ? setState(() => quantity--) : null,
+                  splashRadius: 20,
                 ),
                 Text(
                   "$quantity",
@@ -623,13 +680,18 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.add, size: 20, color: theme.iconTheme.color),
+                  icon: Icon(
+                    Icons.add_rounded,
+                    size: 20,
+                    color: theme.iconTheme.color,
+                  ),
                   onPressed: () => setState(() => quantity++),
+                  splashRadius: 20,
                 ),
               ],
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: ElevatedButton(
               onPressed: isAddingToCart ? null : _addToCart,
@@ -637,6 +699,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 backgroundColor: theme.colorScheme.primary,
                 foregroundColor: theme.colorScheme.onPrimary,
                 padding: const EdgeInsets.symmetric(vertical: 20),
+                elevation: 8,
+                shadowColor: theme.colorScheme.primary.withOpacity(0.4),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -650,11 +714,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text(
-                      "Thêm vào giỏ hàng",
-                      style: TextStyle(
+                  : Text(
+                      "THÊM VÀO GIỎ",
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        letterSpacing: 1,
                       ),
                     ),
             ),

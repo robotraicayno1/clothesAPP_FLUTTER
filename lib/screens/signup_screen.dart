@@ -15,6 +15,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   void _signup() async {
     final name = _nameController.text.trim();
@@ -65,7 +66,6 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      // backgroundColor: theme.scaffoldBackgroundColor, // Handled by theme
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -87,12 +87,18 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 10),
               Text(
                 "Tạo tài khoản.",
-                style: theme.textTheme.displayLarge,
+                style: theme.textTheme.displayLarge?.copyWith(
+                  fontSize: 40,
+                  height: 1.1,
+                ),
               ).animate().fadeIn(duration: 800.ms).slideY(begin: 0.2, end: 0),
               const SizedBox(height: 12),
               Text(
                 "Tham gia cùng chúng tôi để bắt đầu mua sắm những phong cách mới nhất.",
-                style: theme.textTheme.bodyMedium,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.textTheme.bodyMedium?.color?.withOpacity(0.7),
+                  height: 1.5,
+                ),
               ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
 
               const SizedBox(height: 48),
@@ -128,11 +134,25 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: !_isPasswordVisible,
                 style: theme.textTheme.bodyLarge,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: "••••••••",
-                  prefixIcon: Icon(Icons.lock_outline, size: 20),
+                  prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
+                      color: theme.inputDecorationTheme.suffixIconColor,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
               ).animate().fadeIn(delay: 500.ms).slideX(begin: 0.1, end: 0),
 
@@ -146,7 +166,6 @@ class _SignupScreenState extends State<SignupScreen> {
                     )
                   : ElevatedButton(
                       onPressed: _signup,
-                      // Style handled by theme
                       child: const Text("Đăng ký"),
                     ).animate().fadeIn(delay: 700.ms).scale(),
 
@@ -156,7 +175,10 @@ class _SignupScreenState extends State<SignupScreen> {
                 child: Text(
                   "Bằng cách đăng ký, bạn đồng ý với Điều khoản và\nChính sách của chúng tôi.",
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontSize: 12,
+                    color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+                  ),
                 ),
               ).animate().fadeIn(delay: 900.ms),
               const SizedBox(height: 40),
@@ -171,7 +193,7 @@ class _SignupScreenState extends State<SignupScreen> {
     return Text(
       label,
       style: theme.textTheme.labelLarge?.copyWith(
-        color: theme.colorScheme.secondary,
+        color: theme.colorScheme.secondary.withOpacity(0.8),
         letterSpacing: 1.5,
         fontSize: 12,
       ),

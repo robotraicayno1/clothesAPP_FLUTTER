@@ -1,6 +1,5 @@
 import 'package:clothesapp/services/notification_service.dart';
 import 'package:flutter/material.dart';
-
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
@@ -37,7 +36,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Future<void> _markAsRead(String id) async {
     final success = await _notificationService.markAsRead(widget.token, id);
     if (success) {
-      _loadNotifications();
+      // Optimistically update local state or reload
+      setState(() {
+        final index = _notifications.indexWhere((n) => n['_id'] == id);
+        if (index != -1) {
+          _notifications[index]['status'] = 'read';
+        }
+      });
     }
   }
 
@@ -54,7 +59,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Thông báo', style: theme.textTheme.headlineMedium),
+        title: Text(
+          'Thông Báo',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         centerTitle: true,
@@ -65,13 +75,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
               onPressed: _markAllAsRead,
               child: Text(
                 'Đã đọc tất cả',
-                style: TextStyle(color: theme.colorScheme.secondary),
+                style: TextStyle(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadNotifications,
+        color: theme.colorScheme.primary,
+        backgroundColor: theme.cardColor,
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _notifications.isEmpty
@@ -97,17 +112,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           Container(
                                 decoration: BoxDecoration(
                                   color: isUnread
-                                      ? theme.colorScheme.primary.withValues(
-                                          alpha: 0.1,
+                                      ? theme.colorScheme.primary.withOpacity(
+                                          0.05,
                                         )
                                       : theme.cardColor,
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(
                                     color: isUnread
-                                        ? theme.colorScheme.primary.withValues(
-                                            alpha: 0.3,
+                                        ? theme.colorScheme.primary.withOpacity(
+                                            0.3,
                                           )
-                                        : theme.dividerColor,
+                                        : Colors.white.withOpacity(0.05),
                                   ),
                                 ),
                                 padding: const EdgeInsets.all(16),
@@ -117,12 +132,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                     Container(
                                       padding: const EdgeInsets.all(10),
                                       decoration: BoxDecoration(
-                                        color: _getIconColor(item['title']),
+                                        color: _getIconColor(
+                                          item['title'],
+                                        ).withOpacity(0.2),
                                         shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: _getIconColor(
+                                            item['title'],
+                                          ).withOpacity(0.5),
+                                        ),
                                       ),
                                       child: Icon(
                                         _getIcon(item['title']),
-                                        color: Colors.white,
+                                        color: _getIconColor(item['title']),
                                         size: 20,
                                       ),
                                     ),
@@ -136,21 +158,29 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text(
-                                                item['title'],
-                                                style: theme
-                                                    .textTheme
-                                                    .titleMedium
-                                                    ?.copyWith(
-                                                      fontWeight: isUnread
-                                                          ? FontWeight.bold
-                                                          : FontWeight.w600,
-                                                    ),
+                                              Expanded(
+                                                child: Text(
+                                                  item['title'],
+                                                  style: theme
+                                                      .textTheme
+                                                      .titleMedium
+                                                      ?.copyWith(
+                                                        fontWeight: isUnread
+                                                            ? FontWeight.bold
+                                                            : FontWeight.w600,
+                                                        color: isUnread
+                                                            ? Colors.white
+                                                            : Colors.white70,
+                                                      ),
+                                                ),
                                               ),
                                               if (isUnread)
                                                 Container(
                                                   width: 8,
                                                   height: 8,
+                                                  margin: const EdgeInsets.only(
+                                                    left: 8,
+                                                  ),
                                                   decoration: BoxDecoration(
                                                     color: theme
                                                         .colorScheme
@@ -160,20 +190,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                                 ),
                                             ],
                                           ),
-                                          const SizedBox(height: 4),
+                                          const SizedBox(height: 6),
                                           Text(
                                             item['message'],
                                             style: theme.textTheme.bodyMedium
                                                 ?.copyWith(
-                                                  color: Colors.white70,
+                                                  color: Colors.white54,
+                                                  height: 1.4,
                                                 ),
                                           ),
-                                          const SizedBox(height: 8),
+                                          const SizedBox(height: 10),
                                           Text(
                                             timeStr,
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(
-                                                  color: Colors.white38,
+                                                  color: Colors.white30,
+                                                  fontSize: 11,
                                                 ),
                                           ),
                                         ],
@@ -198,34 +230,45 @@ class _NotificationScreenState extends State<NotificationScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.notifications_none_outlined,
-            size: 80,
-            color: theme.disabledColor,
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.notifications_none_outlined,
+              size: 60,
+              color: theme.disabledColor,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             'Chưa có thông báo nào',
-            style: theme.textTheme.titleLarge?.copyWith(
+            style: theme.textTheme.titleMedium?.copyWith(
               color: theme.disabledColor,
             ),
           ),
         ],
-      ),
+      ).animate().fade().scale(),
     );
   }
 
   IconData _getIcon(String title) {
-    if (title.contains('thành công')) return Icons.check_circle_outline;
-    if (title.contains('đang giao')) return Icons.local_shipping_outlined;
-    if (title.contains('hủy')) return Icons.cancel_outlined;
+    String lowerId = title.toLowerCase();
+    if (lowerId.contains('thành công')) return Icons.check_circle_outline;
+    if (lowerId.contains('đang giao')) return Icons.local_shipping_outlined;
+    if (lowerId.contains('hủy')) return Icons.cancel_outlined;
+    if (lowerId.contains('khuyến mãi')) return Icons.local_offer_outlined;
     return Icons.info_outline;
   }
 
   Color _getIconColor(String title) {
-    if (title.contains('thành công')) return Colors.green;
-    if (title.contains('đang giao')) return Colors.blue;
-    if (title.contains('hủy')) return Colors.red;
-    return Colors.orange;
+    String lowerId = title.toLowerCase();
+    if (lowerId.contains('thành công')) return Colors.greenAccent;
+    if (lowerId.contains('đang giao')) return Colors.blueAccent;
+    if (lowerId.contains('hủy')) return Colors.redAccent;
+    if (lowerId.contains('khuyến mãi')) return Colors.amber;
+    return Colors.white;
   }
 }

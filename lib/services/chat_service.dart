@@ -18,12 +18,20 @@ class ChatMessage {
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
+    int created = 0;
+    if (json['createdAt'] is int) {
+      created = json['createdAt'];
+    } else if (json['createdAt'] is String) {
+      created =
+          DateTime.tryParse(json['createdAt'])?.millisecondsSinceEpoch ?? 0;
+    }
+
     return ChatMessage(
-      id: json['_id'] ?? '',
-      senderId: json['senderId'] ?? '',
-      receiverId: json['receiverId'] ?? '',
-      text: json['text'] ?? '',
-      createdAt: json['createdAt'] ?? 0,
+      id: json['_id']?.toString() ?? '',
+      senderId: json['senderId']?.toString() ?? '',
+      receiverId: json['receiverId']?.toString() ?? '',
+      text: json['text']?.toString() ?? '',
+      createdAt: created,
     );
   }
 }

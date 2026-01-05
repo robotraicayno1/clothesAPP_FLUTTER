@@ -11,93 +11,122 @@ class AdminDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text("Trang Quản Trị"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            _buildAdminCard(
-              context,
-              icon: Icons.storefront,
-              title: "Quản Lý Sản Phẩm",
-              subtitle: "Xem, thêm và xóa sản phẩm",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ManageProductsScreen(token: token),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 20),
-            _buildAdminCard(
-              context,
-              icon: Icons.inventory,
-              title: "Quản Lý Kho Hàng",
-              subtitle: "Kiểm soát tồn kho & Giá nhập/bán",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => InventoryManagementScreen(token: token),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 20),
-            _buildAdminCard(
-              context,
-              icon: Icons.discount,
-              title: "Quản Lý Voucher",
-              subtitle: "Tạo mã giảm giá cho khách",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => VoucherScreen(token: token),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 20),
-            _buildAdminCard(
-              context,
-              icon: Icons.assignment_turned_in,
-              title: "Duyệt Đơn Hàng",
-              subtitle: "Xử lý các đơn hàng đang chờ",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AdminOrderScreen(token: token),
-                  ),
-                );
-              },
-            ),
-            SizedBox(height: 20),
-            _buildAdminCard(
-              context,
-              icon: Icons.chat,
-              title: "Quản Lý Chat",
-              subtitle: "Hỗ trợ khách hàng trực tuyến",
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => AdminChatListScreen(token: token),
-                  ),
-                );
-              },
-            ),
-          ],
+        title: Text(
+          "Trang Quản Trị",
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: theme.colorScheme.onSurface,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: theme.iconTheme,
+      ),
+      body: Stack(
+        children: [
+          // Ambient background gradient
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    theme.scaffoldBackgroundColor,
+                    Colors.black,
+                    theme.colorScheme.primary.withOpacity(0.05),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                _buildAdminCard(
+                  context,
+                  icon: Icons.storefront,
+                  title: "Quản Lý Sản Phẩm",
+                  subtitle: "Xem, thêm và xóa sản phẩm",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ManageProductsScreen(token: token),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 16),
+                _buildAdminCard(
+                  context,
+                  icon: Icons.inventory,
+                  title: "Quản Lý Kho Hàng",
+                  subtitle: "Kiểm soát tồn kho & Giá nhập/bán",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => InventoryManagementScreen(token: token),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 16),
+                _buildAdminCard(
+                  context,
+                  icon: Icons.discount,
+                  title: "Quản Lý Voucher",
+                  subtitle: "Tạo mã giảm giá cho khách",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => VoucherScreen(token: token),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 16),
+                _buildAdminCard(
+                  context,
+                  icon: Icons.assignment_turned_in,
+                  title: "Duyệt Đơn Hàng",
+                  subtitle: "Xử lý các đơn hàng đang chờ",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AdminOrderScreen(token: token),
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 16),
+                _buildAdminCard(
+                  context,
+                  icon: Icons.chat,
+                  title: "Quản Lý Chat",
+                  subtitle: "Hỗ trợ khách hàng trực tuyến",
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AdminChatListScreen(token: token),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -109,17 +138,19 @@ class AdminDashboard extends StatelessWidget {
     required String subtitle,
     required VoidCallback onTap,
   }) {
+    final theme = Theme.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withOpacity(0.05)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: Colors.black.withOpacity(0.2),
               blurRadius: 10,
               offset: Offset(0, 4),
             ),
@@ -128,16 +159,15 @@ class AdminDashboard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                color: theme.colorScheme.primary.withOpacity(0.1),
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: theme.colorScheme.primary.withOpacity(0.2),
+                ),
               ),
-              child: Icon(
-                icon,
-                color: Theme.of(context).primaryColor,
-                size: 30,
-              ),
+              child: Icon(icon, color: theme.colorScheme.primary, size: 24),
             ),
             SizedBox(width: 20),
             Expanded(
@@ -146,14 +176,22 @@ class AdminDashboard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                   SizedBox(height: 4),
-                  Text(subtitle, style: TextStyle(color: Colors.grey)),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white54,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+            Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white30),
           ],
         ),
       ),

@@ -1,6 +1,8 @@
 import 'package:clothesapp/screens/chat_screen.dart';
+import 'package:clothesapp/screens/login_screen.dart';
 import 'package:clothesapp/services/user_service.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -110,35 +112,104 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text("Hồ Sơ Của Tôi", style: theme.textTheme.headlineMedium),
+        title: Text(
+          "Hồ Sơ Của Tôi",
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         iconTheme: theme.iconTheme,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoadingUserData
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(24.0),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: theme.colorScheme.primary, // Gold
-                    child: Icon(
-                      Icons.person,
-                      size: 50,
-                      color: theme.colorScheme.onPrimary,
+                  Center(
+                    child: Stack(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: theme.colorScheme.primary, // Gold border
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.colorScheme.primary.withOpacity(
+                                  0.2,
+                                ),
+                                blurRadius: 20,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: CircleAvatar(
+                            radius: 50,
+                            backgroundColor: theme.cardColor,
+                            backgroundImage: const NetworkImage(
+                              "https://i.pravatar.cc/300",
+                            ), // Placeholder profile image
+                            child: Icon(
+                              Icons.person,
+                              size: 50,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: theme.scaffoldBackgroundColor,
+                                width: 2,
+                              ),
+                            ),
+                            child: Icon(
+                              Icons.camera_alt,
+                              size: 16,
+                              color: theme.colorScheme.onPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
                   Text(
                     widget.user['email'] ?? '',
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white70,
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.7,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
 
+                  _buildSectionHeader("Thông tin cá nhân", theme),
+                  const SizedBox(height: 16),
                   _buildTextField(
                     "Họ và Tên",
                     _nameController,
@@ -160,19 +231,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     theme,
                     maxLines: 2,
                   ),
+                  const SizedBox(height: 32),
+                  _buildSectionHeader("Bảo mật", theme),
                   const SizedBox(height: 16),
                   _buildTextField(
-                    "Đổi mật khẩu (Để trống nếu không đổi)",
+                    "Đổi mật khẩu mới",
                     _passwordController,
                     Icons.lock_outline,
                     theme,
                     isPassword: true,
+                    hintText: "Nhập mật khẩu mới nếu muốn đổi",
                   ),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 40),
                   SizedBox(
                     width: double.infinity,
-                    height: 54,
+                    height: 56,
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _updateProfile,
                       style: ElevatedButton.styleFrom(
@@ -181,55 +255,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        elevation: 0,
+                        elevation: 10,
+                        shadowColor: theme.colorScheme.primary.withOpacity(0.4),
                       ),
                       child: _isLoading
                           ? CircularProgressIndicator(
                               color: theme.colorScheme.onPrimary,
                             )
-                          : const Text(
+                          : Text(
                               "LƯU THAY ĐỔI",
-                              style: TextStyle(
+                              style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
+                                letterSpacing: 1,
                               ),
                             ),
                     ),
                   ),
 
                   const SizedBox(height: 48),
-                  Divider(color: theme.dividerColor),
-                  const SizedBox(height: 16),
+                  Divider(color: Colors.white.withOpacity(0.05), thickness: 1),
+                  const SizedBox(height: 24),
                   Text(
                     "Hỗ trợ khách hàng",
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _makeCall,
-                          icon: const Icon(Icons.call, color: Colors.green),
-                          label: Text(
-                            "Gọi",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontSize: 13,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(color: theme.dividerColor),
-                          ),
+                        child: _buildSupportButton(
+                          "Gọi Hotline",
+                          Icons.call,
+                          Colors.green,
+                          _makeCall,
+                          theme,
                         ),
                       ),
-
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 16),
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: () {
+                        child: _buildSupportButton(
+                          "Chat hỗ trợ",
+                          FontAwesomeIcons.commentDots,
+                          Colors.orange,
+                          () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -240,27 +311,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             );
                           },
-                          icon: const FaIcon(
-                            FontAwesomeIcons.commentDots,
-                            color: Colors.orange,
-                          ),
-                          label: Text(
-                            "Chat",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontSize: 13,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            side: BorderSide(color: theme.dividerColor),
-                          ),
+                          theme,
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title, ThemeData theme) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        title.toUpperCase(),
+        style: theme.textTheme.labelLarge?.copyWith(
+          color: theme.colorScheme.secondary,
+          fontSize: 12,
+          letterSpacing: 1.5,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSupportButton(
+    String label,
+    IconData icon,
+    Color iconColor,
+    VoidCallback onTap,
+    ThemeData theme,
+  ) {
+    return Material(
+      color: theme.cardColor,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
+          ),
+          child: Column(
+            children: [
+              Icon(icon, color: iconColor, size: 24),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -271,26 +381,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ThemeData theme, {
     bool isPassword = false,
     int maxLines = 1,
+    String? hintText,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: isPassword,
-      maxLines: maxLines,
-      style: theme.textTheme.bodyLarge,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: theme.textTheme.bodyMedium?.copyWith(color: Colors.white54),
-        prefixIcon: Icon(icon, color: theme.iconTheme.color),
-        filled: true,
-        fillColor: theme.inputDecorationTheme.fillColor,
-        border: theme.inputDecorationTheme.border,
-        enabledBorder: theme.inputDecorationTheme.enabledBorder,
-        focusedBorder: theme.inputDecorationTheme.focusedBorder,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (maxLines == 1 && !isPassword) ...[
+          // For simple fields, just show label in decoration or as a header?
+          // Let's stick to standard input decoration for cleanliness
+        ],
+        TextField(
+          controller: controller,
+          obscureText: isPassword,
+          maxLines: maxLines,
+          style: theme.textTheme.bodyLarge,
+          decoration: InputDecoration(
+            labelText: label,
+            hintText: hintText,
+            labelStyle: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.textTheme.bodyMedium?.color?.withOpacity(0.5),
+            ),
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            prefixIcon: Icon(icon, color: theme.iconTheme.color, size: 20),
+            filled: true,
+            fillColor: theme.cardColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.05)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: theme.colorScheme.primary),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

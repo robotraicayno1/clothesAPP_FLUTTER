@@ -64,6 +64,10 @@ const orderSchema = mongoose.Schema({
         // 3: Delivered/Đã giao
         // 4: Cancelled/Đã hủy
     },
+    paymentProof: {
+        type: String,
+        default: '',
+    },
     createdAt: {
         type: Number, // Storing as timestamp for consistency with other parts if any, or just easy sorting
         default: () => Date.now(),

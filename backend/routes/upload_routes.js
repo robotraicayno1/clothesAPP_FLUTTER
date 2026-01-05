@@ -14,7 +14,7 @@ const storage = multer.diskStorage({
 // Init Upload
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 5000000 }, // 5MB limit
+    limits: { fileSize: 50000000 }, // 50MB limit (Increased from 5MB)
     fileFilter: function (req, file, cb) {
         checkFileType(file, cb);
     }
@@ -22,14 +22,16 @@ const upload = multer({
 
 // Check File Type
 function checkFileType(file, cb) {
-    const filetypes = /jpeg|jpg|png|gif/;
+    const filetypes = /jpeg|jpg|png|gif|webp/; // Added webp
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
+    // Remove strict mimetype check for now as it can be flaky with some phones
+    // const mimetype = filetypes.test(file.mimetype);
 
-    if (mimetype && extname) {
+    if (extname) {
         return cb(null, true);
     } else {
-        cb('Error: Images Only!');
+        console.log("File Type Error:", file.originalname, file.mimetype);
+        cb('Error: Images Only! (jpeg, jpg, png, gif, webp)');
     }
 }
 
@@ -37,11 +39,14 @@ function checkFileType(file, cb) {
 uploadRouter.post('/', (req, res) => {
     upload(req, res, (err) => {
         if (err) {
+            console.log("Upload Error:", err); // Log the specific error
             res.status(400).json({ msg: err });
         } else {
             if (req.file == undefined) {
+                console.log("Error: No file selected");
                 res.status(400).json({ msg: 'No file selected!' });
             } else {
+                console.log("File Uploaded:", req.file.filename);
                 res.json({
                     msg: 'File Uploaded!',
                     url: `uploads/${req.file.filename}`

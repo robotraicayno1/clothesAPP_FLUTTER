@@ -16,16 +16,14 @@ class UploadService {
 
       if (response.statusCode == 200) {
         var resJson = jsonDecode(response.body);
-        String relativePath = resJson['url'];
-        // Construct full URL from ApiConstants
-        String serverBase = ApiConstants.baseUrl.replaceAll('/api', '');
-        return "$serverBase/$relativePath";
+        return resJson['url'];
       } else {
-        return null;
+        throw Exception(
+          "Server Error: ${response.statusCode} - ${response.body}",
+        );
       }
     } catch (e) {
-      // print("Upload Error: $e");
-      return null;
+      throw Exception("Upload Failed: $e");
     }
   }
 }

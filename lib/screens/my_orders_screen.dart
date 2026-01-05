@@ -1,6 +1,9 @@
+import 'package:clothesapp/models/order.dart';
 import 'package:clothesapp/services/order_service.dart';
 import 'package:clothesapp/widgets/order_review_list_dialog.dart';
 import 'package:flutter/material.dart';
+
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class MyOrdersScreen extends StatefulWidget {
@@ -59,6 +62,7 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
         title: const Text("Xác nhận hủy"),
         content: const Text("Bạn có chắc chắn muốn hủy đơn hàng này không?"),
         actions: [
@@ -100,8 +104,15 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text("Đơn Hàng Của Tôi", style: theme.textTheme.headlineMedium),
+        title: Text(
+          "Đơn Hàng Của Tôi",
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
         iconTheme: theme.iconTheme,
@@ -110,14 +121,28 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _orders.isEmpty
           ? Center(
-              child: Text(
-                "Bạn chưa có đơn hàng nào",
-                style: theme.textTheme.bodyLarge,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.shopping_bag_outlined,
+                    size: 80,
+                    color: theme.disabledColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Bạn chưa có đơn hàng nào",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.disabledColor,
+                    ),
+                  ),
+                ],
               ),
             )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
+          : ListView.separated(
+              padding: const EdgeInsets.all(20),
               itemCount: _orders.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 20),
               itemBuilder: (context, index) {
                 final order = _orders[index];
                 final date = DateTime.fromMillisecondsSinceEpoch(
@@ -125,50 +150,83 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                 );
                 final dateString = DateFormat('dd/MM/yyyy HH:mm').format(date);
 
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  color: theme.cardColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: theme.dividerColor),
+                return Container(
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              "Mã đơn: ${order.id.substring(order.id.length - 8)}",
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "#${order.id.substring(order.id.length - 8).toUpperCase()}",
+                                  style: GoogleFonts.outfit(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  dateString,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.white54,
+                                  ),
+                                ),
+                              ],
                             ),
                             _buildStatusBadge(order.status),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          dateString,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white54,
-                            fontSize: 12,
-                          ),
-                        ),
-                        if (order.trackingNumber.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            "Mã vận đơn: ${order.trackingNumber}",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.primary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                        const SizedBox(height: 16),
+                        if (order.trackingNumber.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.background,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.local_shipping_outlined,
+                                  size: 16,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  "Vận đơn: ${order.trackingNumber}",
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
-                        const Divider(),
+                        Divider(color: Colors.white.withOpacity(0.05)),
+                        const SizedBox(height: 12),
                         ...order.products.asMap().entries.map((entry) {
                           final idx = entry.key;
                           final product = entry.value;
@@ -176,43 +234,77 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                               ? order.quantities[idx]
                               : 1;
                           return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 2.0),
+                            padding: const EdgeInsets.only(bottom: 12.0),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  product.name,
-                                  style: theme.textTheme.bodyMedium,
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[800],
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Image.network(
+                                    product.fullImageUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.image,
+                                      color: Colors.white24,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        product.name,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                                 Text(
                                   "x$quantity",
-                                  style: theme.textTheme.bodyMedium,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white54,
+                                  ),
                                 ),
                               ],
                             ),
                           );
                         }).toList(),
-                        const Divider(),
+                        Divider(color: Colors.white.withOpacity(0.05)),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Tổng cộng:",
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
+                              "Thành tiền",
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: Colors.white54,
                               ),
                             ),
                             Text(
                               currencyFormat.format(order.totalPrice),
-                              style: theme.textTheme.titleMedium?.copyWith(
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 color: theme.colorScheme.primary,
                               ),
                             ),
                           ],
                         ),
-                        if (order.status == 0 || order.status == 1) ...[
-                          const SizedBox(height: 16),
+                        const SizedBox(height: 20),
+                        if (order.status == 0 || order.status == 1)
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton(
@@ -220,15 +312,21 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: theme.colorScheme.error,
                                 side: BorderSide(
-                                  color: theme.colorScheme.error,
+                                  color: theme.colorScheme.error.withOpacity(
+                                    0.5,
+                                  ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
                               child: const Text("Hủy đơn hàng"),
                             ),
                           ),
-                        ],
-                        if (order.status == 2) ...[
-                          const SizedBox(height: 16),
+                        if (order.status == 2)
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -236,13 +334,17 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.green,
                                 foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                               child: const Text("Đã nhận được hàng"),
                             ),
                           ),
-                        ],
-                        if (order.status == 3) ...[
-                          const SizedBox(height: 16),
+                        if (order.status == 3)
                           SizedBox(
                             width: double.infinity,
                             child: OutlinedButton.icon(
@@ -261,14 +363,23 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
                               ),
                               label: Text(
                                 "Đánh giá sản phẩm",
-                                style: theme.textTheme.bodyMedium,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: theme.dividerColor),
+                                side: BorderSide(
+                                  color: Colors.white.withOpacity(0.1),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ),
@@ -303,20 +414,20 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
         color = Colors.red;
         break;
       default:
-        text = "Không xác định";
+        text = "Khác";
         color = Colors.grey;
     }
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color),
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Text(
         text,
-        style: TextStyle(
+        style: GoogleFonts.outfit(
           color: color,
           fontSize: 12,
           fontWeight: FontWeight.bold,

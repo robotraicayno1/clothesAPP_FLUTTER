@@ -18,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final AuthService _authService = AuthService();
   bool _isLoading = false;
+  bool _isPasswordVisible = false;
 
   void _login() async {
     final email = _emailController.text.trim();
@@ -68,7 +69,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      // backgroundColor: theme.scaffoldBackgroundColor, // Handled by theme
       body: SingleChildScrollView(
         child: Container(
           height: MediaQuery.of(context).size.height,
@@ -83,7 +83,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   Text(
                         "Chào mừng\ntrở lại.",
-                        style: theme.textTheme.displayLarge,
+                        style: theme.textTheme.displayLarge?.copyWith(
+                          fontSize: 40,
+                          height: 1.1,
+                        ),
                       )
                       .animate()
                       .fadeIn(duration: 800.ms)
@@ -91,7 +94,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 16),
                   Text(
                     "Đăng nhập để cập nhật những\nbộ sưu tập mới nhất của chúng tôi.",
-                    style: theme.textTheme.bodyMedium,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                        0.7,
+                      ),
+                      height: 1.5,
+                    ),
                   ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.2, end: 0),
                 ],
               ),
@@ -100,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 "ĐỊA CHỈ EMAIL",
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.secondary,
+                  color: theme.colorScheme.secondary.withOpacity(0.8),
                   letterSpacing: 1.5,
                   fontSize: 12,
                 ),
@@ -121,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Text(
                 "MẬT KHẨU",
                 style: theme.textTheme.labelLarge?.copyWith(
-                  color: theme.colorScheme.secondary,
+                  color: theme.colorScheme.secondary.withOpacity(0.8),
                   letterSpacing: 1.5,
                   fontSize: 12,
                 ),
@@ -129,11 +137,25 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: !_isPasswordVisible,
                 style: theme.textTheme.bodyLarge,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: "••••••••",
-                  prefixIcon: Icon(Icons.lock_outline, size: 20),
+                  prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isPasswordVisible
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 20,
+                      color: theme.inputDecorationTheme.suffixIconColor,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isPasswordVisible = !_isPasswordVisible;
+                      });
+                    },
+                  ),
                 ),
               ).animate().fadeIn(delay: 600.ms).slideX(begin: 0.1, end: 0),
 
@@ -168,7 +190,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     )
                   : ElevatedButton(
                       onPressed: _login,
-                      // Style handled by theme
                       child: const Text("Đăng nhập"),
                     ).animate().fadeIn(delay: 800.ms).scale(),
 
@@ -176,15 +197,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
               Row(
                 children: [
-                  Expanded(child: Divider(color: theme.dividerColor)),
+                  Expanded(child: Divider(color: theme.dividerTheme.color)),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
                       "Hoặc tiếp tục với",
-                      style: theme.textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.textTheme.bodyMedium?.color?.withOpacity(
+                          0.5,
+                        ),
+                      ),
                     ),
                   ),
-                  Expanded(child: Divider(color: theme.dividerColor)),
+                  Expanded(child: Divider(color: theme.dividerTheme.color)),
                 ],
               ).animate().fadeIn(delay: 1000.ms),
 
@@ -193,15 +218,11 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildSocialIcon(Icons.g_mobiledata, Colors.red, theme),
+                  _buildSocialIcon(Icons.g_mobiledata, theme),
                   const SizedBox(width: 24),
-                  _buildSocialIcon(Icons.apple, Colors.white, theme),
+                  _buildSocialIcon(Icons.apple, theme),
                   const SizedBox(width: 24),
-                  _buildSocialIcon(
-                    Icons.facebook,
-                    const Color(0xFF1877F2),
-                    theme,
-                  ),
+                  _buildSocialIcon(Icons.facebook, theme),
                 ],
               ).animate().fadeIn(delay: 1200.ms).moveY(begin: 20, end: 0),
 
@@ -241,22 +262,26 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildSocialIcon(IconData icon, Color color, ThemeData theme) {
+  Widget _buildSocialIcon(IconData icon, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: theme.cardTheme.color,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: theme.dividerColor),
-        boxShadow: [
+        border: Border.all(color: Colors.white.withOpacity(0.05)),
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: Colors.black26,
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
-      child: Icon(icon, color: color, size: 28),
+      child: Icon(
+        icon,
+        color: theme.colorScheme.onSurface,
+        size: 28,
+      ), // Monochrome luxury style
     );
   }
 }
